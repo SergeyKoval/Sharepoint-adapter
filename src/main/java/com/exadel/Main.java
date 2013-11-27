@@ -1,22 +1,32 @@
 package com.exadel;
 
+import com.exadel.operations.Cleaner;
 import com.exadel.operations.Downloader;
 import com.exadel.operations.Uploader;
+import com.exadel.util.FBAHttpClientBuilder;
+import org.apache.http.client.HttpClient;
+
+import java.io.IOException;
 
 public class Main {
 
-    // TODO Remove it
-    public static final String login = "pmitrafanau";
-    public static final String password = "******";
-    public static final String domain = "eltegra";
+    // users credentials from db (not active dir.!!!) for form base authentication
+    public static final String login = "Jack Sparrow";
+    public static final String password = "HG*as5W";
 
-    public static final String docLibURI = "http://localhost/test/";
+    public static final String serverURL = "http://localhost:2004";
 
 
-    public static void main(String[] args) {
-        Uploader uloader = new Uploader(login, password, domain, docLibURI);
-        Downloader dloader = new Downloader(login, password, domain, docLibURI);
-        uloader.upload("ttt.txt");
-        dloader.download("ttt.txt");
+    public static void main(String[] args) throws IOException {
+        FBAHttpClientBuilder httpClientBuilder = FBAHttpClientBuilder.getInstance();
+        HttpClient httpClient = httpClientBuilder.build(serverURL, login, password);
+
+        Uploader uloader = new Uploader(httpClient);
+        Downloader dloader = new Downloader(httpClient);
+        Cleaner cleaner = new Cleaner(httpClient);
+
+        uloader.upload(serverURL + "/library/FBA.mp4", "D:/FBA.mp4");
+        dloader.download(serverURL + "/library/FBA.mp4", "D:/Del/FBA.mp4");
+        cleaner.delete(serverURL + "/library/FBA.mp4");
     }
 }
