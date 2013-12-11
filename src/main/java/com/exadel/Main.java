@@ -11,8 +11,10 @@ import java.net.Authenticator;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 
+import javax.xml.soap.SOAPException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -24,6 +26,8 @@ import javax.xml.ws.Holder;
 
 import com.exadel.authenticator.NTLMAuthenticator;
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
+import org.apache.axis.holders.UnsignedIntHolder;
+import org.apache.axis.types.UnsignedInt;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -33,10 +37,10 @@ import com.microsoft.schemas.sharepoint.soap.*;
 
 public class Main {
 
-    private static String username = "username";
-    private static String password = "password";
+    private static String username = "skoval";
+    private static String password = "Bhbyf25ngl1qwweqwe1";
 
-    private static String spSiteURL = "http://192.168.43.167:42553";
+    private static String spSiteURL = "http://192.168.0.70:30025";
 
     private static ListsSoap listsSoap;
     private static VersionsSoap versionsSoap;
@@ -51,16 +55,16 @@ public class Main {
             initSPVersionsSoap(username, password, spSiteURL);
             initSPCopySoap(username, password, spSiteURL);
 
-            displaySharePointList();
+           displaySharePointList();
 
-            // String checkoutURL = spSiteURL + "/Documents/48.jpg";
+           // String checkoutURL = spSiteURL + "/Documents/pom.xml";
             // checkOutFile(listsSoap, checkoutURL);
             // undoCheckOutFile(listsSoap, checkoutURL);
-            // checkOutFile(listsSoap, checkoutURL);
 
-            // UploadFile("D:/46.jpg");
+            DownloadFile();
 
-            // checkInFile(listsSoap, checkoutURL, "Test Checkin");
+           UploadFile("D:/46.jpg");
+            //checkInFile(listsSoap, "http://192.168.0.70:30025/Documents/views.wsdl", "Comment");
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -238,7 +242,7 @@ public class Main {
         return result;
     }
 
-
+    /*
     public static void DownloadFile(String sourceUrl, String destination, String versionNumber) throws Exception {
         try {
             String fileName = sourceUrl.substring(sourceUrl.lastIndexOf("/") + 1);
@@ -252,7 +256,9 @@ public class Main {
             fieldInfoArray.value = fic;
 
             javax.xml.ws.Holder<Long> cResultArray = new javax.xml.ws.Holder<Long>();
+            cResultArray.value = new Long(0);
             javax.xml.ws.Holder<byte[]> fileContents = new javax.xml.ws.Holder<byte[]>(); // no need to initialize the GetItem takes care of that.
+            fileContents.value = new byte[20];
 
             //Cal Web Service Method
             copySoap.getItem(sourceUrl, cResultArray, fieldInfoArray, fileContents);
@@ -270,19 +276,37 @@ public class Main {
             ex.printStackTrace();
             throw new Exception("Error: " + ex.toString());
         }
+    }     */
+
+    public static void DownloadFile() {
+        String sourceURL = "http://localhost:30025/Documents/test.doc";
+
+        Holder<Long> getItemResult = new Holder<Long>();
+        getItemResult.value = new Long(0);
+
+        Holder<FieldInformationCollection> fields = new Holder<FieldInformationCollection>();
+        FieldInformationCollection fCol = new FieldInformationCollection();
+        fCol.getFieldInformation().add(new FieldInformation());
+        fields.value = fCol;
+
+        Holder<byte[]> stream = new Holder<byte[]>(new byte[4096]);
+
+        copySoap.getItem(sourceURL, getItemResult, fields, stream);
+
+        System.out.println(getItemResult.value + " " + stream.value);
     }
 
 
     public static void UploadFile(String filepath) throws Exception {
         try {
-            String sourceURL = "file:///D:/46.jpg";
-            File file = new File("D:/46.jpg");
+            String sourceURL = "file:///D:/views.wsdl";
+            File file = new File("D:/pom.xml");
             BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
             byte[] stream = new byte[inputStream.available()];
             inputStream.read(stream);
 
             DestinationUrlCollection destinationUrls = new DestinationUrlCollection();
-            destinationUrls.getString().add("http://192.168.43.167:42553/Documents/46.jpg"); // попробовать без имени файла
+            destinationUrls.getString().add("http://localhost:30025/Documents/pom.xml"); // попробовать без имени файла
 
             FieldInformationCollection infCollection = new FieldInformationCollection();
 
@@ -292,7 +316,19 @@ public class Main {
 
             infCollection.getFieldInformation().add(fInf);
 
-            copySoap.copyIntoItems(sourceURL, destinationUrls, infCollection, stream, new Holder<Long>(), new Holder<CopyResultCollection>());
+            Holder<Long> copyIntoItemsResult = new Holder<Long>();
+            copyIntoItemsResult.value = new Long(0);
+
+            Holder<CopyResultCollection> copyResultCollectionHolder = new Holder<CopyResultCollection>();
+            copyResultCollectionHolder.value = new CopyResultCollection();
+            copyResultCollectionHolder.value.getCopyResult().add(new CopyResult());
+
+            copySoap.copyIntoItems("", destinationUrls, infCollection, stream, copyIntoItemsResult, copyResultCollectionHolder);
+
+            String errorMessage = copyResultCollectionHolder.value.getCopyResult().get(0)
+                    .getErrorMessage();
+
+            System.out.println(errorMessage);
             // error message always exists
         } catch (FileNotFoundException ex) {
             System.out.println("FileNotFoundException : " + ex);
