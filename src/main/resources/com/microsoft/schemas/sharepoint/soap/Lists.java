@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.2
  * 
  */
-@WebServiceClient(name = "Lists", targetNamespace = "http://schemas.microsoft.com/sharepoint/soap/", wsdlLocation = "file:/D:/Temp/lists.wsdl")
+@WebServiceClient(name = "Lists", targetNamespace = "http://schemas.microsoft.com/sharepoint/soap/", wsdlLocation = "file:/C:/Users/pmitrafanau/Desktop/Current%20Work/Sharepoint-adapter/src/main/resources/lists.wsdl")
 public class Lists
     extends Service
 {
@@ -30,7 +30,7 @@ public class Lists
         URL url = null;
         WebServiceException e = null;
         try {
-            url = new URL("file:/D:/Temp/lists.wsdl");
+            url = new URL("file:/C:/Users/pmitrafanau/Desktop/Current%20Work/Sharepoint-adapter/src/main/resources/lists.wsdl");
         } catch (MalformedURLException ex) {
             e = new WebServiceException(ex);
         }

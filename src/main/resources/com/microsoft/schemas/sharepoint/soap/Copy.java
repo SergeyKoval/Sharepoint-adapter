@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.2
  * 
  */
-@WebServiceClient(name = "Copy", targetNamespace = "http://schemas.microsoft.com/sharepoint/soap/", wsdlLocation = "file:/D:/Temp/copy.wsdl")
+@WebServiceClient(name = "Copy", targetNamespace = "http://schemas.microsoft.com/sharepoint/soap/", wsdlLocation = "file:/C:/Users/pmitrafanau/Desktop/Current%20Work/Sharepoint-adapter/src/main/resources/copy.wsdl")
 public class Copy
     extends Service
 {
@@ -30,7 +30,7 @@ public class Copy
         URL url = null;
         WebServiceException e = null;
         try {
-            url = new URL("file:/D:/Temp/copy.wsdl");
+            url = new URL("file:/C:/Users/pmitrafanau/Desktop/Current%20Work/Sharepoint-adapter/src/main/resources/copy.wsdl");
         } catch (MalformedURLException ex) {
             e = new WebServiceException(ex);
         }
