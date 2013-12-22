@@ -36,6 +36,11 @@ public class Operations {
     }
 
 
+    public void addDocumentLibrary(String libraryName, String libraryDescription) {
+        listsSoap.addList(libraryName, libraryDescription, 101);
+    }
+
+
     public void displaySPList(String listName, List<String> listColumnNames, String rowLimit) throws Exception {
         if (listsSoap != null && listName != null && listColumnNames != null && rowLimit != null) {
             try {
