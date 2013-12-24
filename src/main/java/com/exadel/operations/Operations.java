@@ -16,6 +16,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
 import java.io.*;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
@@ -178,14 +179,14 @@ public class Operations {
 
 
     private void listsSoapAuthentication(String login, String password) throws Exception {
-        Lists service = new Lists();
+        Lists service = new Lists(new URL(this.getClass().getClassLoader().getResource("lists.wsdl").toExternalForm()));
         listsSoap = service.getListsSoap();
         serviceAuthentication(listsSoap, login, password);
     }
 
 
     private void copySoapAuthentication(String login, String password) throws Exception {
-        Copy service = new Copy();
+        Copy service = new Copy(new URL(this.getClass().getClassLoader().getResource("copy.wsdl").toExternalForm()));
         copySoap = service.getCopySoap();
         serviceAuthentication(copySoap, login, password);
     }
