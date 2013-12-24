@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>com.exadel</groupId>
-            <artifactId>spoint</artifactId>
+            <artifactId>splistcopy</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>

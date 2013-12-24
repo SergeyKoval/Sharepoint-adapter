@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
+import javax.xml.namespace.QName;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -179,14 +180,16 @@ public class Operations {
 
 
     private void listsSoapAuthentication(String login, String password) throws Exception {
-        Lists service = new Lists(new URL(this.getClass().getClassLoader().getResource("lists.wsdl").toExternalForm()));
+        Lists service = new Lists(new URL(this.getClass().getClassLoader().getResource("lists.wsdl").toExternalForm()),
+                new QName("http://schemas.microsoft.com/sharepoint/soap/", "Lists"));
         listsSoap = service.getListsSoap();
         serviceAuthentication(listsSoap, login, password);
     }
 
 
     private void copySoapAuthentication(String login, String password) throws Exception {
-        Copy service = new Copy(new URL(this.getClass().getClassLoader().getResource("copy.wsdl").toExternalForm()));
+        Copy service = new Copy(new URL(this.getClass().getClassLoader().getResource("copy.wsdl").toExternalForm()),
+                new QName("http://schemas.microsoft.com/sharepoint/soap/", "Copy"));
         copySoap = service.getCopySoap();
         serviceAuthentication(copySoap, login, password);
     }
