@@ -11,7 +11,7 @@ import java.util.List;
 public class Main {
 
     private static String login = "eltegra\\skoval";
-    private static String password = "Bhbyf25ngl11";
+    private static String password = "PASS";
 
 
     public static void main(String[] args) throws Exception {
@@ -21,6 +21,8 @@ public class Main {
         List<String> columnNames = new ArrayList<String>(Arrays.asList("LinkFilename", "FileRef"));
         String rowLimit = "100";
         operations.displaySPList(listName, columnNames, rowLimit);
+
+        operations.addDocumentLibrary("Test", "");
 
         operations.uploadSPFile("D:\\copy.wsdl", "http://sp2013:5108/Test/copy.wsdl");
         operations.downloadSPFile("http://sp2013:5108/Test/copy.wsdl", "D:/copy1.wsdl");
