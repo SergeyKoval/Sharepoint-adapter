@@ -10,7 +10,7 @@ import java.util.List;
 public class Main {
 
     private static String login = "eltegra\\skoval";
-    private static String password = "";
+    private static String password = "Bhbyf25ngl11";
 
     private static String localFilePath = "D:/lists.wsdl";
     private static String uploadedFileName = "lists.wsdl";
