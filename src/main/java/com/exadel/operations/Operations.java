@@ -1,6 +1,7 @@
 package com.exadel.operations;
 
 import com.exadel.soap.ListsRequest;
+import com.exadel.soap.QueryOptionsNode;
 import com.microsoft.schemas.sharepoint.soap.*;
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
 import org.w3c.dom.Document;
@@ -43,13 +44,18 @@ public class Operations {
     }
 
 
-    public void displaySPList(String listName, List<String> listColumnNames, String rowLimit) throws Exception {
+    public void deleteDocumentLibrary(String libraryName) {
+        listsSoap.deleteList(libraryName);
+    }
+
+
+    public void displaySPList(String listName, List<String> listColumnNames,
+                              String rowLimit, GetListItems.QueryOptions queryOptions) throws Exception {
         if (listsSoap != null && listName != null && listColumnNames != null && rowLimit != null) {
             try {
                 String viewName = "";
                 GetListItems.ViewFields viewFields = null;
                 GetListItems.Query query = null;
-                GetListItems.QueryOptions queryOptions = null;
                 String webID = "";
 
                 GetListItemsResponse.GetListItemsResult result = listsSoap.getListItems(listName, viewName, query,
@@ -96,6 +102,22 @@ public class Operations {
         }
     }
 
+
+    public void displaySPFolder(String listName, String folderUrl,
+                                List<String> listColumnNames, String rowLimit) throws Exception {
+        HashMap<String, String> fields = new HashMap<String, String>();
+        fields.put("Folder", folderUrl);
+
+        QueryOptionsNode qoNode = new QueryOptionsNode();
+        qoNode.fillMethodFields(fields);
+
+        GetListItems.QueryOptions queryOptions = new GetListItems.QueryOptions();
+        queryOptions.getContent().add(qoNode.getRootDocument().getDocumentElement());
+
+        displaySPList(listName, listColumnNames, rowLimit, queryOptions);
+    }
+
+
     public void downloadSPFile(String sourceURL, String destinationPath) throws IOException {
         Holder<Long> getItemResult = new Holder<Long>();
         getItemResult.value = new Long(20);
@@ -116,6 +138,7 @@ public class Operations {
 
         System.out.println(getItemResult.value + " " + stream.value.length);
     }
+
 
     public void uploadSPFile(String filePath, String destinationURL) throws Exception {
         try {
@@ -159,6 +182,30 @@ public class Operations {
         if ((listsSoap != null) && (listName != null) && (itemAttributes != null) && (!itemAttributes.isEmpty())) {
             try {
                 ListsRequest deleteRequest = new ListsRequest("Delete");
+                deleteRequest.fillMethodFields(itemAttributes);
+
+                System.out.println("REQUEST:"
+                        + xmlToString(deleteRequest.getRootDocument()));
+
+                UpdateListItems.Updates updates = new UpdateListItems.Updates();
+                Object docObj = (Object) deleteRequest.getRootDocument().getDocumentElement();
+                updates.getContent().add(docObj);
+
+                UpdateListItemsResponse.UpdateListItemsResult result = listsSoap.updateListItems(listName, updates);
+
+                System.out.println("RESPONSE : "
+                        + xmlToString((org.w3c.dom.Document) (((ElementNSImpl) result.getContent().get(0)).getOwnerDocument())));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    public void createNewFolder(String listName, HashMap<String, String> itemAttributes) {
+        if ((listsSoap != null) && (listName != null) && (itemAttributes != null) && (!itemAttributes.isEmpty())) {
+            try {
+                ListsRequest deleteRequest = new ListsRequest("New");
                 deleteRequest.fillMethodFields(itemAttributes);
 
                 System.out.println("REQUEST:"
