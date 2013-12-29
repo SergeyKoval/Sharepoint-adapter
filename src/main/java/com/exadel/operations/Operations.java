@@ -1,6 +1,8 @@
 package com.exadel.operations;
 
+import com.exadel.constants.LibraryItemType;
 import com.exadel.entities.LibraryDescription;
+import com.exadel.entities.LibraryItem;
 import com.exadel.soap.ListsRequest;
 import com.exadel.soap.QueryOptionsNode;
 import com.microsoft.schemas.sharepoint.soap.*;
@@ -47,16 +49,16 @@ public class Operations {
     }
 
 
-    public void deleteDocumentLibrary(String libraryName) {
+    public void deleteLibrary(String libraryName) {
         listsSoap.deleteList(libraryName);
     }
 
 
     public List<LibraryDescription> getDescrForAvailableDocLibs() {
-        List<LibraryDescription> result = new LinkedList<LibraryDescription>();
+        List<LibraryDescription> descriptions = new LinkedList<LibraryDescription>();
 
-        GetListCollectionResponse.GetListCollectionResult response = listsSoap.getListCollection();
-        Object resultContent = response.getContent().get(0);
+        GetListCollectionResponse.GetListCollectionResult result = listsSoap.getListCollection();
+        Object resultContent = result.getContent().get(0);
 
         if ((resultContent != null) && (resultContent instanceof ElementNSImpl)) {
             ElementNSImpl node = (ElementNSImpl) resultContent;
@@ -80,71 +82,21 @@ public class Operations {
                     libraryDescription.setDescription(attributes.getNamedItem("Description").getNodeValue());
                     libraryDescription.setItemsCount(Integer.parseInt(attributes.getNamedItem("ItemCount").getNodeValue()));
 
-                    result.add(libraryDescription);
+                    descriptions.add(libraryDescription);
                 }
             }
         }
 
-        return result;
+        return descriptions;
     }
 
 
-    public void displaySPList(String listName, List<String> listColumnNames,
-                              String rowLimit, GetListItems.QueryOptions queryOptions) throws Exception {
-        if (listsSoap != null && listName != null && listColumnNames != null && rowLimit != null) {
-            try {
-                String viewName = "";
-                GetListItems.ViewFields viewFields = null;
-                GetListItems.Query query = null;
-                String webID = "";
-
-                GetListItemsResponse.GetListItemsResult result = listsSoap.getListItems(listName, viewName, query,
-                        viewFields, rowLimit, queryOptions, webID);
-                Object resultContent = result.getContent().get(0);
-
-                if ((resultContent != null) && (resultContent instanceof ElementNSImpl)) {
-                    ElementNSImpl node = (ElementNSImpl) resultContent;
-
-                    //Print the retrieved info in the console (just for debugging)
-                    Document document = node.getOwnerDocument();
-                    System.out.println("Response for getListItems");
-                    System.out.println(xmlToString(document));
-
-                    //selects a list of nodes which have z:row elements
-                    NodeList list = node.getElementsByTagName("z:row");
-                    System.out.println("There are " + list.getLength() + " files exist");
-
-                    //Displaying meta-data for every file
-                    for (int i = 0; i < list.getLength(); i++) {
-
-                        //Gets the attributes of the current row/element
-                        NamedNodeMap attributes = list.item(i).getAttributes();
-                        System.out.println("Item ID: " + attributes.getNamedItem("ows_ID").getNodeValue());
-
-                        //Displays all the attributes of the list item that correspond to the column names given
-                        for (String columnName : listColumnNames) {
-                            String internalColumnName = "ows_" + columnName;
-
-                            if (attributes.getNamedItem(internalColumnName) != null) {
-                                System.out.println(columnName + ": " + attributes.getNamedItem(internalColumnName).getNodeValue());
-                            } else {
-                                throw new Exception("Couldn't find the '" + columnName +
-                                        "' column in the '" + listName + "' list in SharePoint.\n");
-                            }
-                        }
-                    }
-                } else {
-                    throw new Exception(listName + " list response from SharePoint is either null or corrupt\n");
-                }
-            } catch (Exception ex) {
-                System.out.println(ex.toString());
-            }
-        }
+    public List<LibraryItem> getLibraryItems(String listName, String rowLimit) throws Exception {
+        return getLibraryItems(listName, rowLimit, null);
     }
 
 
-    public void displaySPFolder(String listName, String folderUrl,
-                                List<String> listColumnNames, String rowLimit) throws Exception {
+    public List<LibraryItem> getFolderItems(String listName, String folderUrl,  String rowLimit) throws Exception {
         HashMap<String, String> fields = new HashMap<String, String>();
         fields.put("Folder", folderUrl);
 
@@ -154,7 +106,7 @@ public class Operations {
         GetListItems.QueryOptions queryOptions = new GetListItems.QueryOptions();
         queryOptions.getContent().add(qoNode.getRootDocument().getDocumentElement());
 
-        displaySPList(listName, listColumnNames, rowLimit, queryOptions);
+        return getLibraryItems(listName, rowLimit, queryOptions);
     }
 
 
@@ -175,8 +127,6 @@ public class Operations {
         FileOutputStream fos = new FileOutputStream(new File(destinationPath));
         fos.write(stream.value);
         fos.close();
-
-        System.out.println(getItemResult.value + " " + stream.value.length);
     }
 
 
@@ -218,23 +168,17 @@ public class Operations {
     }
 
 
-    public void deleteListItem(String listName, HashMap<String, String> itemAttributes) {
+    public void deleteLibraryItem(String listName, HashMap<String, String> itemAttributes) {
         if ((listsSoap != null) && (listName != null) && (itemAttributes != null) && (!itemAttributes.isEmpty())) {
             try {
                 ListsRequest deleteRequest = new ListsRequest("Delete");
                 deleteRequest.fillMethodFields(itemAttributes);
-
-                System.out.println("REQUEST:"
-                        + xmlToString(deleteRequest.getRootDocument()));
 
                 UpdateListItems.Updates updates = new UpdateListItems.Updates();
                 Object docObj = (Object) deleteRequest.getRootDocument().getDocumentElement();
                 updates.getContent().add(docObj);
 
                 UpdateListItemsResponse.UpdateListItemsResult result = listsSoap.updateListItems(listName, updates);
-
-                System.out.println("RESPONSE : "
-                        + xmlToString((org.w3c.dom.Document) (((ElementNSImpl) result.getContent().get(0)).getOwnerDocument())));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -248,21 +192,73 @@ public class Operations {
                 ListsRequest deleteRequest = new ListsRequest("New");
                 deleteRequest.fillMethodFields(itemAttributes);
 
-                System.out.println("REQUEST:"
-                        + xmlToString(deleteRequest.getRootDocument()));
-
                 UpdateListItems.Updates updates = new UpdateListItems.Updates();
                 Object docObj = (Object) deleteRequest.getRootDocument().getDocumentElement();
                 updates.getContent().add(docObj);
 
                 UpdateListItemsResponse.UpdateListItemsResult result = listsSoap.updateListItems(listName, updates);
-
-                System.out.println("RESPONSE : "
-                        + xmlToString((org.w3c.dom.Document) (((ElementNSImpl) result.getContent().get(0)).getOwnerDocument())));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+
+    private List<LibraryItem> getLibraryItems(String listName, String rowLimit, GetListItems.QueryOptions queryOptions) throws Exception {
+        List<LibraryItem> libraryItems = new LinkedList<LibraryItem>();
+
+        if (listsSoap != null && listName != null && rowLimit != null) {
+            try {
+                String viewName = "";
+                GetListItems.ViewFields viewFields = null;
+                GetListItems.Query query = null;
+                String webID = "";
+
+                GetListItemsResponse.GetListItemsResult result = listsSoap.getListItems(listName, viewName, query,
+                        viewFields, rowLimit, queryOptions, webID);
+                Object resultContent = result.getContent().get(0);
+
+                if ((resultContent != null) && (resultContent instanceof ElementNSImpl)) {
+                    ElementNSImpl node = (ElementNSImpl) resultContent;
+
+                    // Print the retrieved info in the console (just for debugging)
+                    /*
+                    Document document = node.getOwnerDocument();;
+                    System.out.println(xmlToString(document));
+                    */
+
+
+                    NodeList list = node.getElementsByTagName("z:row");
+
+                    for (int i = 0; i < list.getLength(); i++) {
+                        NamedNodeMap attributes = list.item(i).getAttributes();
+
+                        LibraryItem libraryItem = new LibraryItem();
+                        libraryItem.setItemName(attributes.getNamedItem("ows_LinkFilename").getNodeValue());
+
+                        String fsObjType = attributes.getNamedItem("ows_FSObjType").getNodeValue();
+                        int objType = Integer.parseInt(fsObjType.substring(fsObjType.indexOf('#') + 1));
+
+                        switch (objType) {
+                            case 0:
+                                libraryItem.setType(LibraryItemType.FILE);
+                                break;
+                            case 1:
+                                libraryItem.setType(LibraryItemType.FOLDER);
+                                break;
+                        }
+
+                        libraryItems.add(libraryItem);
+                    }
+                } else {
+                    throw new Exception(listName + " list response from SharePoint is either null or corrupt\n");
+                }
+            } catch (Exception ex) {
+                System.out.println(ex.toString());
+            }
+        }
+
+        return libraryItems;
     }
 
 
