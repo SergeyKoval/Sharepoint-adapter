@@ -1,6 +1,7 @@
 package com.exadel;
 
 import com.exadel.operations.Operations;
+import com.exadel.wsdl.WsdlDownloader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,8 +10,8 @@ import java.util.List;
 
 public class Main {
 
-    private static String login = "eltegra\\skoval";
-    private static String password = "Bh11";
+    private static String login = "eltegra/pmitrafanau";
+    private static String password = "HG*a5E";
 
     private static String localFilePath = "D:/lists.wsdl";
     private static String uploadedFileName = "lists.wsdl";
@@ -21,6 +22,13 @@ public class Main {
 
 
     public static void main(String[] args) throws Exception {
+        WsdlDownloader wsdlDownloader = new WsdlDownloader();
+        wsdlDownloader.openConnection(siteUrl, login, password);
+        wsdlDownloader.getWsdl("copy", "src/main/resources/copy.wsdl");
+        wsdlDownloader.getWsdl("lists", "src/main/resources/lists.wsdl");
+        wsdlDownloader.closeConnection();
+
+        /*
         Operations operations = Operations.getInstance(login, password);
 
         // Creating a library
@@ -85,6 +93,6 @@ public class Main {
         // Remove folder (including subfoler and all containing files)
         fields.put("FileRef", siteUrl + "/" + listName + "/TestFolder");
 
-        operations.deleteListItem(listName, fields);
+        operations.deleteListItem(listName, fields); */
     }
 }
