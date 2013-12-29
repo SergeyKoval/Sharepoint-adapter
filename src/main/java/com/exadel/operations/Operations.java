@@ -1,11 +1,13 @@
 package com.exadel.operations;
 
+import com.exadel.entities.DocumentLibrary;
 import com.exadel.soap.ListsRequest;
 import com.exadel.soap.QueryOptionsNode;
 import com.microsoft.schemas.sharepoint.soap.*;
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
@@ -19,8 +21,7 @@ import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
 import java.io.*;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * This is a proxy class that provides simple interface for interacting with SharePoint
@@ -29,6 +30,8 @@ public class Operations {
 
     private ListsSoap listsSoap;
     private CopySoap copySoap;
+
+    private static int SERVER_DOCLIB_TEMPLATAE = 101;
 
     private static Operations operations;
 
@@ -40,12 +43,49 @@ public class Operations {
 
 
     public void addDocumentLibrary(String libraryName, String libraryDescription) {
-        listsSoap.addList(libraryName, libraryDescription, 101);
+        listsSoap.addList(libraryName, libraryDescription, SERVER_DOCLIB_TEMPLATAE);
     }
 
 
     public void deleteDocumentLibrary(String libraryName) {
         listsSoap.deleteList(libraryName);
+    }
+
+
+    public List<DocumentLibrary> getAvailableDLibraries() {
+        List<DocumentLibrary> result = new LinkedList<DocumentLibrary>();
+
+        GetListCollectionResponse.GetListCollectionResult response = listsSoap.getListCollection();
+        Object resultContent = response.getContent().get(0);
+
+        if ((resultContent != null) && (resultContent instanceof ElementNSImpl)) {
+            ElementNSImpl node = (ElementNSImpl) resultContent;
+
+            /* Use this code to see what does result contains
+            Document document = node.getOwnerDocument();
+            System.out.println("Response for getExistingLists");
+            System.out.println(xmlToString(document));
+            */
+
+            NodeList list = node.getElementsByTagName("List");
+
+            for (int i = 0; i < list.getLength(); i++) {
+                NamedNodeMap attributes = list.item(i).getAttributes();
+                Node serverTemplate = attributes.getNamedItem("ServerTemplate");
+
+                if ((serverTemplate != null) &&
+                        (serverTemplate.getNodeValue().equals(String.valueOf(SERVER_DOCLIB_TEMPLATAE)))) {
+                    DocumentLibrary documentLibrary = new DocumentLibrary();
+                    documentLibrary.setTitle(attributes.getNamedItem("Title").getNodeValue());
+                    documentLibrary.setDescription(attributes.getNamedItem("Description").getNodeValue());
+                    documentLibrary.setItemsCount(Integer.parseInt(attributes.getNamedItem("ItemCount").getNodeValue()));
+
+                    result.add(documentLibrary);
+                }
+            }
+        }
+
+        return result;
     }
 
 

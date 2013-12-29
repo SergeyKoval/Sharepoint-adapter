@@ -1,17 +1,15 @@
 package com.exadel;
 
+import com.exadel.entities.DocumentLibrary;
 import com.exadel.operations.Operations;
 import com.exadel.wsdl.WsdlDownloader;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class Main {
 
-    private static String login = "eltegra/pmitrafanau";
-    private static String password = "HG*a5E";
+    private static String login = "eltegra/skoval";
+    private static String password = "Bhbyf25ngl11";
 
     private static String localFilePath = "D:/lists.wsdl";
     private static String uploadedFileName = "lists.wsdl";
@@ -28,9 +26,23 @@ public class Main {
         wsdlDownloader.getWsdl("lists", "src/main/resources/lists.wsdl");
         wsdlDownloader.closeConnection();
 
-        /*
         Operations operations = Operations.getInstance(login, password);
 
+        // Get DocumentLibrary list, that contains description for all libraries, available for current user
+        List<DocumentLibrary> list = operations.getAvailableDLibraries();
+
+        System.out.println("\nLIBRARY LIST");
+
+        for (DocumentLibrary lib : list) {
+            System.out.println("***********************************");
+            System.out.println("Document library title: " + lib.getTitle());
+            System.out.println("Document library description: " + lib.getDescription());
+            System.out.println("Document library items count: " + lib.getItemsCount());
+        }
+
+        System.out.println("***********************************");
+
+        /*
         // Creating a library
         String listName = "Test1";
         operations.addDocumentLibrary(listName, "Description");
