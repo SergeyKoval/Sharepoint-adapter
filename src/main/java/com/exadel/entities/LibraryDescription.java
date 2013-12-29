@@ -2,13 +2,13 @@ package com.exadel.entities;
 
 import java.util.Date;
 
-public class DocumentLibrary {
+public class LibraryDescription {
 
     private String title;
     private String description;
     private int itemsCount;
 
-    public DocumentLibrary() {
+    public LibraryDescription() {
 
     }
 

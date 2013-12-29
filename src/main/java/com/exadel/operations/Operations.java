@@ -1,6 +1,6 @@
 package com.exadel.operations;
 
-import com.exadel.entities.DocumentLibrary;
+import com.exadel.entities.LibraryDescription;
 import com.exadel.soap.ListsRequest;
 import com.exadel.soap.QueryOptionsNode;
 import com.microsoft.schemas.sharepoint.soap.*;
@@ -52,8 +52,8 @@ public class Operations {
     }
 
 
-    public List<DocumentLibrary> getAvailableDLibraries() {
-        List<DocumentLibrary> result = new LinkedList<DocumentLibrary>();
+    public List<LibraryDescription> getDescrForAvailableDocLibs() {
+        List<LibraryDescription> result = new LinkedList<LibraryDescription>();
 
         GetListCollectionResponse.GetListCollectionResult response = listsSoap.getListCollection();
         Object resultContent = response.getContent().get(0);
@@ -75,12 +75,12 @@ public class Operations {
 
                 if ((serverTemplate != null) &&
                         (serverTemplate.getNodeValue().equals(String.valueOf(SERVER_DOCLIB_TEMPLATAE)))) {
-                    DocumentLibrary documentLibrary = new DocumentLibrary();
-                    documentLibrary.setTitle(attributes.getNamedItem("Title").getNodeValue());
-                    documentLibrary.setDescription(attributes.getNamedItem("Description").getNodeValue());
-                    documentLibrary.setItemsCount(Integer.parseInt(attributes.getNamedItem("ItemCount").getNodeValue()));
+                    LibraryDescription libraryDescription = new LibraryDescription();
+                    libraryDescription.setTitle(attributes.getNamedItem("Title").getNodeValue());
+                    libraryDescription.setDescription(attributes.getNamedItem("Description").getNodeValue());
+                    libraryDescription.setItemsCount(Integer.parseInt(attributes.getNamedItem("ItemCount").getNodeValue()));
 
-                    result.add(documentLibrary);
+                    result.add(libraryDescription);
                 }
             }
         }
