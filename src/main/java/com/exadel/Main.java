@@ -5,31 +5,36 @@ import com.exadel.entities.LibraryItem;
 import com.exadel.operations.Operations;
 import com.exadel.wsdl.WsdlDownloader;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Main {
 
     private static String login = "eltegra/skoval";
-    private static String password = "Bhbyf25ngl11";
+    private static String password = "";
 
-    private static String localFilePath = "D:/lists.wsdl";
-    private static String uploadedFileName = "lists.wsdl";
+    private static String localFilePath = "D:/wss.doc";
+    private static String uploadedFileName = "wss.doc";
 
-    private static String newLocalFilePath = "D:/lists12.wsdl";
+    private static String newLocalFilePath = "D:/wss1.doc";
 
-    private static String siteUrl = "http://localhost:18961";
+    private static String siteUrl = "http://sp2013:5108";
 
 
     public static void main(String[] args) throws Exception {
+
+        // Downloading wsdl for specified site (specify it above)
         WsdlDownloader wsdlDownloader = new WsdlDownloader();
         wsdlDownloader.openConnection(siteUrl, login, password);
         wsdlDownloader.getWsdl("copy", "src/main/resources/copy.wsdl");
         wsdlDownloader.getWsdl("lists", "src/main/resources/lists.wsdl");
         wsdlDownloader.closeConnection();
+        // ----------------------------------------------------------------------------------------------------
 
-        Operations operations = Operations.getInstance(login, password);
+
+        // Initializing soap services
+        Operations operations = Operations.getInstance(login, password, siteUrl);
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Get LibraryDescription list, that contains description for all libraries, available for current user
         List<LibraryDescription> descriptions = operations.getDescrForAvailableDocLibs();
@@ -44,17 +49,26 @@ public class Main {
         }
 
         System.out.println("***********************************\n");
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Creating a library
-        String libraryName = "TestLibrary5";
-        // operations.addDocumentLibrary(libraryName, "Description");
+        String libraryName = "TestLibrary3";  // If library already exist on site, exception will be thrown
+        operations.addDocumentLibrary(libraryName, "Description");
+        // ----------------------------------------------------------------------------------------------------
+
+
+        // Add library to site's quick launch bar
+        operations.addLibraryToQuickLaunch(libraryName);
+        // ----------------------------------------------------------------------------------------------------
 
 
         // Upload file into library
-        operations.uploadSPFile(localFilePath, siteUrl + "/" + libraryName + "/" + uploadedFileName);
+        operations.uploadFile(localFilePath, siteUrl + "/" + libraryName + "/" + uploadedFileName);
+        // ----------------------------------------------------------------------------------------------------
 
 
-        // Display !library! items
+        // Display specified library items
         String rowLimit = "150";
         List<LibraryItem> libraryItems = operations.getLibraryItems(libraryName, rowLimit);
 
@@ -67,51 +81,52 @@ public class Main {
         }
 
         System.out.println("***********************************");
-
+        // ----------------------------------------------------------------------------------------------------
 
 
         // Download file from library
-        operations.downloadSPFile(siteUrl + "/" + libraryName + "/" + uploadedFileName, newLocalFilePath);
+        operations.downloadFile(siteUrl + "/" + libraryName + "/" + uploadedFileName, newLocalFilePath);
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Delete file from library
-        HashMap<String, String> fields = new HashMap<String, String>();
-        fields.put("ID", "1"); // It isn't used (We can put here any id)
-        fields.put("FileRef", siteUrl + "/" + libraryName + "/" + uploadedFileName);
-
-        operations.deleteLibraryItem(libraryName, fields);
-
+        operations.deleteLibraryFile(libraryName, uploadedFileName);
+        // ----------------------------------------------------------------------------------------------------
 
 
         // Remove document library (including all containing files)
         operations.deleteLibrary(libraryName);
-
+        // ----------------------------------------------------------------------------------------------------
 
 
         // Creating a library again.. (to show folders operations)
         operations.addDocumentLibrary(libraryName, "Description");
+        // ----------------------------------------------------------------------------------------------------
 
 
         // All operations for subfolders listed below can be used for folders
 
-        // Make a folder
-        fields.clear();
-        fields.put("ID", "New");
-        fields.put("FSObjType", "1");
-        fields.put("BaseName", "TestFolder");
 
-        operations.createNewFolder(libraryName, fields);
+        // Make a folder
+        operations.createNewFolder(libraryName, "TestFolder");
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Make a subfolder
-        fields.put("BaseName", "TestFolder/TestSubfolder");
-        operations.createNewFolder(libraryName, fields);
+        operations.createNewFolder(libraryName, "TestFolder/TestSubfolder");
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Make a subsubfolder:)
-        fields.put("BaseName", "TestFolder/TestSubfolder/TestSubsubfolder");
-        operations.createNewFolder(libraryName, fields);
+        operations.createNewFolder(libraryName, "TestFolder/TestSubfolder/TestSubsubfolder");
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Upload file into subfolder
-        operations.uploadSPFile(localFilePath,
+        operations.uploadFile(localFilePath,
                 siteUrl + "/" + libraryName + "/TestFolder/TestSubfolder/" + uploadedFileName);
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Show subfolder's contents
         List<LibraryItem> folderItems = operations.getFolderItems(libraryName, siteUrl + "/" +
@@ -126,21 +141,22 @@ public class Main {
         }
 
         System.out.println("***********************************");
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Download file from subfolder
-        operations.downloadSPFile(siteUrl + "/" + libraryName + "/TestFolder/TestSubfolder/" + uploadedFileName,
+        operations.downloadFile(siteUrl + "/" + libraryName + "/TestFolder/TestSubfolder/" + uploadedFileName,
                 newLocalFilePath);
+        // ----------------------------------------------------------------------------------------------------
+
 
         // Remove file from subfolder
-        fields.clear();
-        fields.put("ID", "1"); // It isn't used (We can put here any id)
-        fields.put("FileRef", siteUrl + "/" + libraryName + "/TestFolder/TestSubfolder/" + uploadedFileName);
+        operations.deleteLibraryFile(libraryName, "/TestFolder/TestSubfolder/" + uploadedFileName);
+        // ----------------------------------------------------------------------------------------------------
 
-        operations.deleteLibraryItem(libraryName, fields);
 
         // Remove folder (including subfoler and all containing files)
-        fields.put("FileRef", siteUrl + "/" + libraryName + "/TestFolder");
-
-        operations.deleteLibraryItem(libraryName, fields);
+        operations.deleteLibraryFolder(libraryName, "TestFolder");
+        // ----------------------------------------------------------------------------------------------------
     }
 }

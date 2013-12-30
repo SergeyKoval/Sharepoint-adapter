@@ -3,7 +3,8 @@ package com.exadel.operations;
 import com.exadel.constants.LibraryItemType;
 import com.exadel.entities.LibraryDescription;
 import com.exadel.entities.LibraryItem;
-import com.exadel.soap.ListsRequest;
+import com.exadel.soap.BatchNode;
+import com.exadel.soap.ListNode;
 import com.exadel.soap.QueryOptionsNode;
 import com.microsoft.schemas.sharepoint.soap.*;
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
@@ -33,19 +34,42 @@ public class Operations {
     private ListsSoap listsSoap;
     private CopySoap copySoap;
 
+    private String siteUrl;
+
     private static int SERVER_DOCLIB_TEMPLATAE = 101;
 
     private static Operations operations;
 
 
-    private Operations(String login, String password) throws Exception {
+    private Operations(String login, String password, String siteUrl) throws Exception {
         listsSoapAuthentication(login, password);
         copySoapAuthentication(login, password);
+
+        this.siteUrl = siteUrl;
     }
 
 
     public void addDocumentLibrary(String libraryName, String libraryDescription) {
         listsSoap.addList(libraryName, libraryDescription, SERVER_DOCLIB_TEMPLATAE);
+    }
+
+
+    public void addLibraryToQuickLaunch(String libraryName) throws Exception {
+        HashMap<String, String> libraryProperties = new HashMap<String, String>();
+        libraryProperties.put("OnQuickLaunch", "TRUE");
+
+        setLibraryProperties(libraryName, libraryProperties);
+    }
+
+
+    public void setLibraryProperties(String libraryName, HashMap<String, String> properties) throws Exception {
+        ListNode listNode = new ListNode();
+        listNode.fillListAttributes(properties);
+
+        UpdateList.ListProperties listProperties = new UpdateList.ListProperties();
+        listProperties.getContent().add(listNode.getRootDocument().getDocumentElement());
+
+        listsSoap.updateList(libraryName, listProperties, null, null, null, null);
     }
 
 
@@ -97,11 +121,11 @@ public class Operations {
 
 
     public List<LibraryItem> getFolderItems(String listName, String folderUrl,  String rowLimit) throws Exception {
-        HashMap<String, String> fields = new HashMap<String, String>();
-        fields.put("Folder", folderUrl);
+        HashMap<String, String> elements = new HashMap<String, String>();
+        elements.put("Folder", folderUrl);
 
         QueryOptionsNode qoNode = new QueryOptionsNode();
-        qoNode.fillMethodFields(fields);
+        qoNode.fillQueryOptionsElements(elements);
 
         GetListItems.QueryOptions queryOptions = new GetListItems.QueryOptions();
         queryOptions.getContent().add(qoNode.getRootDocument().getDocumentElement());
@@ -110,7 +134,7 @@ public class Operations {
     }
 
 
-    public void downloadSPFile(String sourceURL, String destinationPath) throws IOException {
+    public void downloadFile(String sourceURL, String destinationPath) throws IOException {
         Holder<Long> getItemResult = new Holder<Long>();
         getItemResult.value = new Long(20);
 
@@ -130,7 +154,7 @@ public class Operations {
     }
 
 
-    public void uploadSPFile(String filePath, String destinationURL) throws Exception {
+    public void uploadFile(String filePath, String destinationURL) throws Exception {
         try {
             String sourceURL = "file:///" + filePath;
             File file = new File(filePath);
@@ -168,29 +192,35 @@ public class Operations {
     }
 
 
-    public void deleteLibraryItem(String listName, HashMap<String, String> itemAttributes) {
-        if ((listsSoap != null) && (listName != null) && (itemAttributes != null) && (!itemAttributes.isEmpty())) {
-            try {
-                ListsRequest deleteRequest = new ListsRequest("Delete");
-                deleteRequest.fillMethodFields(itemAttributes);
+    public void deleteLibraryFile(String libraryName, String fileName) {
+        HashMap<String, String> fields = new HashMap<String, String>();
+        fields.put("ID", "1"); // It isn't used (We can put here any id)
+        fields.put("FileRef", siteUrl + "/" + libraryName + "/" + fileName);
 
-                UpdateListItems.Updates updates = new UpdateListItems.Updates();
-                Object docObj = (Object) deleteRequest.getRootDocument().getDocumentElement();
-                updates.getContent().add(docObj);
-
-                UpdateListItemsResponse.UpdateListItemsResult result = listsSoap.updateListItems(listName, updates);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        deleteLibraryItem(libraryName, fields);
     }
 
 
-    public void createNewFolder(String listName, HashMap<String, String> itemAttributes) {
-        if ((listsSoap != null) && (listName != null) && (itemAttributes != null) && (!itemAttributes.isEmpty())) {
+    public void deleteLibraryFolder(String libraryName, String folderName) {
+        HashMap<String, String> fields = new HashMap<String, String>();
+        fields.put("ID", "1"); // It isn't used (We can put here any id)
+        fields.put("FileRef", siteUrl + "/" + libraryName + "/" + folderName);
+
+        deleteLibraryItem(libraryName, fields);
+    }
+
+
+    public void createNewFolder(String listName, String folderName) {
+
+        HashMap<String, String> fields = new HashMap<String, String>();
+        fields.put("ID", "New");
+        fields.put("FSObjType", "1");
+        fields.put("BaseName", folderName);
+
+        if (listName != null) {
             try {
-                ListsRequest deleteRequest = new ListsRequest("New");
-                deleteRequest.fillMethodFields(itemAttributes);
+                BatchNode deleteRequest = new BatchNode("New");
+                deleteRequest.fillMethodFields(fields);
 
                 UpdateListItems.Updates updates = new UpdateListItems.Updates();
                 Object docObj = (Object) deleteRequest.getRootDocument().getDocumentElement();
@@ -262,6 +292,24 @@ public class Operations {
     }
 
 
+    private void deleteLibraryItem(String libraryName, HashMap<String, String> fields) {
+        if ((listsSoap != null) && (libraryName != null) && (fields != null) && (!fields.isEmpty())) {
+            try {
+                BatchNode deleteRequest = new BatchNode("Delete");
+                deleteRequest.fillMethodFields(fields);
+
+                UpdateListItems.Updates updates = new UpdateListItems.Updates();
+                Object docObj = (Object) deleteRequest.getRootDocument().getDocumentElement();
+                updates.getContent().add(docObj);
+
+                UpdateListItemsResponse.UpdateListItemsResult result = listsSoap.updateListItems(libraryName, updates);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     private void listsSoapAuthentication(String login, String password) throws Exception {
         Lists service = new Lists(new URL(this.getClass().getClassLoader().getResource("lists.wsdl").toExternalForm()),
                 new QName("http://schemas.microsoft.com/sharepoint/soap/", "Lists"));
@@ -319,9 +367,9 @@ public class Operations {
     }
 
 
-    public static Operations getInstance(String login, String password) throws Exception {
+    public static Operations getInstance(String login, String password, String siteUrl) throws Exception {
         if (operations == null) {
-            operations = new Operations(login, password);
+            operations = new Operations(login, password, siteUrl);
         }
 
         return operations;

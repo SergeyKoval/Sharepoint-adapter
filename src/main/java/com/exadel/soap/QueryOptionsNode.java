@@ -29,14 +29,14 @@ public class QueryOptionsNode {
      * @param fields Pairs (fieldName, fieldValue)
      * @return
      */
-    public void fillMethodFields(HashMap<String, String> fields) {
+    public void fillQueryOptionsElements(HashMap<String, String> fields) {
         Node rootElement = rootDocument.getElementsByTagName("QueryOptions").item(0);
         Element createdElement = null;
 
         for (Map.Entry<String, String> fieldAttr : fields.entrySet()) {
             createdElement = getRootDocument().createElement(fieldAttr.getKey());
-            Text attributeValue = getRootDocument().createTextNode(fieldAttr.getValue());
-            createdElement.appendChild(attributeValue);
+            Text value = getRootDocument().createTextNode(fieldAttr.getValue());
+            createdElement.appendChild(value);
 
             rootElement.appendChild(createdElement);
         }

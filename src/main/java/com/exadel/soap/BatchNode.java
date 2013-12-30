@@ -12,7 +12,7 @@ import org.w3c.dom.Text;
 /**
  * This class provides SOAP request for SharePoint Lists web-services methods
  */
-public class ListsRequest {
+public class BatchNode {
 
     private Document rootDocument;
     private Element rootDocContent;
@@ -21,7 +21,7 @@ public class ListsRequest {
      * @param requestType Valid values: new, update, delete
      * @throws Exception
      */
-    public ListsRequest(String requestType) throws Exception {
+    public BatchNode(String requestType) throws Exception {
         if (requestType != null) {
             if (requestType.equals("New") || requestType.equals("Update") || requestType.equals("Delete")) {
                 try {
