@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Main {
 
-    private static String login = "eltegra/skoval";
+    private static String login = "eltegra/pmitrafanau";
     private static String password = "";
 
     private static String localFilePath = "D:/wss.doc";
@@ -17,7 +17,10 @@ public class Main {
 
     private static String newLocalFilePath = "D:/wss1.doc";
 
-    private static String siteUrl = "http://sp2013:5108";
+    private static String siteUrl = "http://sp2013:1422";
+
+
+    private static String wsdlLocation = "C:\\Program Files\\Tomcat7.0.29\\sharepoint\\wsdl\\";
 
 
     public static void main(String[] args) throws Exception {
@@ -25,14 +28,14 @@ public class Main {
         // Downloading wsdl for specified site (specify it above)
         WsdlDownloader wsdlDownloader = new WsdlDownloader();
         wsdlDownloader.openConnection(siteUrl, login, password);
-        wsdlDownloader.getWsdl("copy", "src/main/resources/copy.wsdl");
-        wsdlDownloader.getWsdl("lists", "src/main/resources/lists.wsdl");
+        wsdlDownloader.getWsdl("copy", wsdlLocation + "copy.wsdl");
+        wsdlDownloader.getWsdl("lists", wsdlLocation + "lists.wsdl");
         wsdlDownloader.closeConnection();
         // ----------------------------------------------------------------------------------------------------
 
 
         // Initializing soap services
-        Operations operations = Operations.getInstance(login, password, siteUrl);
+        Operations operations = new Operations(login, password, siteUrl, wsdlLocation);
         // ----------------------------------------------------------------------------------------------------
 
 

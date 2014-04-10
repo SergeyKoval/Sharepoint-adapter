@@ -1,7 +1,5 @@
 package com.exadel.entities;
 
-import java.util.Date;
-
 public class LibraryDescription {
 
     private String title;
@@ -9,7 +7,6 @@ public class LibraryDescription {
     private int itemsCount;
 
     public LibraryDescription() {
-
     }
 
 

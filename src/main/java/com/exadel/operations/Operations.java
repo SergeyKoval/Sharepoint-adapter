@@ -36,21 +36,19 @@ public class Operations {
 
     private String siteUrl;
 
-    private static int SERVER_DOCLIB_TEMPLATAE = 101;
-
-    private static Operations operations;
+    private static int SERVER_DOCLIB_TEMPLATE = 101;
 
 
-    private Operations(String login, String password, String siteUrl) throws Exception {
-        listsSoapAuthentication(login, password);
-        copySoapAuthentication(login, password);
+    public Operations(String login, String password, String siteUrl, String wsdlLocation) throws Exception {
+        listsSoapAuthentication(login, password, wsdlLocation);
+        copySoapAuthentication(login, password, wsdlLocation);
 
         this.siteUrl = siteUrl;
     }
 
 
     public void addDocumentLibrary(String libraryName, String libraryDescription) {
-        listsSoap.addList(libraryName, libraryDescription, SERVER_DOCLIB_TEMPLATAE);
+        listsSoap.addList(libraryName, libraryDescription, SERVER_DOCLIB_TEMPLATE);
     }
 
 
@@ -100,7 +98,7 @@ public class Operations {
                 Node serverTemplate = attributes.getNamedItem("ServerTemplate");
 
                 if ((serverTemplate != null) &&
-                        (serverTemplate.getNodeValue().equals(String.valueOf(SERVER_DOCLIB_TEMPLATAE)))) {
+                        (serverTemplate.getNodeValue().equals(String.valueOf(SERVER_DOCLIB_TEMPLATE)))) {
                     LibraryDescription libraryDescription = new LibraryDescription();
                     libraryDescription.setTitle(attributes.getNamedItem("Title").getNodeValue());
                     libraryDescription.setDescription(attributes.getNamedItem("Description").getNodeValue());
@@ -310,16 +308,16 @@ public class Operations {
     }
 
 
-    private void listsSoapAuthentication(String login, String password) throws Exception {
-        Lists service = new Lists(new URL(this.getClass().getClassLoader().getResource("lists.wsdl").toExternalForm()),
+    private void listsSoapAuthentication(String login, String password, String wsdlLocation) throws Exception {
+        Lists service = new Lists(new URL(new File(wsdlLocation + "lists.wsdl").toURI().toURL().toExternalForm()),
                 new QName("http://schemas.microsoft.com/sharepoint/soap/", "Lists"));
         listsSoap = service.getListsSoap();
         serviceAuthentication(listsSoap, login, password);
     }
 
 
-    private void copySoapAuthentication(String login, String password) throws Exception {
-        Copy service = new Copy(new URL(this.getClass().getClassLoader().getResource("copy.wsdl").toExternalForm()),
+    private void copySoapAuthentication(String login, String password, String wsdlLocation) throws Exception {
+        Copy service = new Copy(new URL(new File(wsdlLocation + "copy.wsdl").toURI().toURL().toExternalForm()),
                 new QName("http://schemas.microsoft.com/sharepoint/soap/", "Copy"));
         copySoap = service.getCopySoap();
         serviceAuthentication(copySoap, login, password);
@@ -364,14 +362,5 @@ public class Operations {
 
         result.append("@@@@@@ END @@@@@@\n");
         return result.toString();
-    }
-
-
-    public static Operations getInstance(String login, String password, String siteUrl) throws Exception {
-        if (operations == null) {
-            operations = new Operations(login, password, siteUrl);
-        }
-
-        return operations;
     }
 }
