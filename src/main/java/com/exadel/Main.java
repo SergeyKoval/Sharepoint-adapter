@@ -10,7 +10,7 @@ import java.util.List;
 public class Main {
 
     private static String login = "eltegra/pmitrafanau";
-    private static String password = "";
+    private static String password = "HG*as5E";
 
     private static String localFilePath = "D:/wss.doc";
     private static String uploadedFileName = "wss.doc";
@@ -35,7 +35,7 @@ public class Main {
 
 
         // Initializing soap services
-        Operations operations = new Operations(login, password, siteUrl, wsdlLocation);
+        Operations operations = new Operations(login, password, siteUrl, wsdlLocation + "lists.wsdl", wsdlLocation + "copy.wsdl");
         // ----------------------------------------------------------------------------------------------------
 
 
@@ -55,7 +55,7 @@ public class Main {
         // ----------------------------------------------------------------------------------------------------
 
 
-        // Creating a library
+        // Creating a library (Throws an exception if library exist)
         String libraryName = "TestLibrary3";  // If library already exist on site, exception will be thrown
         operations.addDocumentLibrary(libraryName, "Description");
         // ----------------------------------------------------------------------------------------------------

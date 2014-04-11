@@ -39,9 +39,9 @@ public class Operations {
     private static int SERVER_DOCLIB_TEMPLATE = 101;
 
 
-    public Operations(String login, String password, String siteUrl, String wsdlLocation) throws Exception {
-        listsSoapAuthentication(login, password, wsdlLocation);
-        copySoapAuthentication(login, password, wsdlLocation);
+    public Operations(String login, String password, String siteUrl, String listWsdlPath, String copyWsdlPath) throws Exception {
+        listsSoapAuthentication(login, password, listWsdlPath);
+        copySoapAuthentication(login, password, copyWsdlPath);
 
         this.siteUrl = siteUrl;
     }
@@ -308,16 +308,16 @@ public class Operations {
     }
 
 
-    private void listsSoapAuthentication(String login, String password, String wsdlLocation) throws Exception {
-        Lists service = new Lists(new URL(new File(wsdlLocation + "lists.wsdl").toURI().toURL().toExternalForm()),
+    private void listsSoapAuthentication(String login, String password, String wsdlPath) throws Exception {
+        Lists service = new Lists(new URL(new File(wsdlPath).toURI().toURL().toExternalForm()),
                 new QName("http://schemas.microsoft.com/sharepoint/soap/", "Lists"));
         listsSoap = service.getListsSoap();
         serviceAuthentication(listsSoap, login, password);
     }
 
 
-    private void copySoapAuthentication(String login, String password, String wsdlLocation) throws Exception {
-        Copy service = new Copy(new URL(new File(wsdlLocation + "copy.wsdl").toURI().toURL().toExternalForm()),
+    private void copySoapAuthentication(String login, String password, String wsdlPath) throws Exception {
+        Copy service = new Copy(new URL(new File(wsdlPath).toURI().toURL().toExternalForm()),
                 new QName("http://schemas.microsoft.com/sharepoint/soap/", "Copy"));
         copySoap = service.getCopySoap();
         serviceAuthentication(copySoap, login, password);
